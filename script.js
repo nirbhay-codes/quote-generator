@@ -19,7 +19,17 @@ function complete() {
     }
 }
 
-// Get Quote From API
+let apiQuotes = [];
+
+function newQuote() {
+    // const quote = localQuotes[Math.floor(Math.random() * localQuotes.length)];
+    const quote = apiQuotes[Math.floor(Math.random() * apiQuotes.length)];
+    console.log(quote);
+    return quote;
+}
+
+// Get Quote From external API
+// If we want to use the localQuotes then we can comment out this function.
 async function getQuote() {
     loading()
     // We need to use a Proxy URL to make our API call in order to avoid a CORS error
@@ -48,6 +58,34 @@ async function getQuote() {
     }
 }
 
+async function getQuoteFromJacintoApi() {
+    loading()
+    const apiUrl = 'https://jacintodesign.github.io/quotes-api/data/quotes.json';
+    try {
+        const response = await fetch(apiUrl);
+        apiQuotes = await response.json();
+        const quote = newQuote();
+
+        // Check if Author field is blank and replace it with 'Unknown'
+        if (quote.author === '') {
+            authorText.innerText = 'Unknown';
+        } else {
+            authorText.innerText = quote.author;
+        }
+        // Dynamically reduce font size for long quotes
+        if (quote.text.length > 120) {
+            quoteText.classList.add('long-quote');
+        } else {
+            quoteText.classList.remove('long-quote');
+        }
+        quoteText.innerText = quote.text;
+        // Stop Loading, Show Quote
+        complete();
+    } catch (error) {
+        getQuote();
+    }
+}
+
 // Tweet Quote
 function tweetQuote() {
     const quote = quoteText.innerText;
@@ -57,8 +95,10 @@ function tweetQuote() {
 }
 
 // Event Listeners
-newQuoteBtn.addEventListener('click', getQuote);
+// newQuoteBtn.addEventListener('click', getQuote);
+newQuoteBtn.addEventListener('click', getQuoteFromJacintoApi);
 twitterBtn.addEventListener('click', tweetQuote);
 
 // On Load
-getQuote();
+// getQuote();
+getQuoteFromJacintoApi();
